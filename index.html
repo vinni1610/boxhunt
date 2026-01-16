@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BOX HUNT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 6px 15px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    input {
+      width: 80px;
+      padding: 5px;
+    }
+
+    #playArea {
+      width: 500px;
+      height: 300px;
+      border: 2px solid black;
+      margin: 20px auto;
+      position: relative;
+      background: #f9f9f9;
+    }
+
+    #box {
+      width: 20px;
+      height: 20px;
+      background: red;
+      position: absolute;
+      display: none;
+      cursor: pointer;
+    }
+
+    table {
+      width: 300px;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid black;
+      padding: 6px;
+    }
+
+    th {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>BOX HUNT</h1>
+
+  <div class="controls">
+    Interval (sec):
+    <input type="number" id="intervalInput" value="2" min="1">
+    <br><br>
+    <button id="startBtn">START</button>
+    <button id="pauseBtn">PAUSE</button>
+    <button id="resetBtn">RESET</button>
+  </div>
+
+  <div id="playArea">
+    <div id="box"></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Mouse Click #</th>
+        <th>Reaction Time (s)</th>
+      </tr>
+    </thead>
+    <tbody id="resultTable"></tbody>
+  </table>
+
+<script>
+  const box = document.getElementById("box");
+  const playArea = document.getElementById("playArea");
+  const startBtn = document.getElementById("startBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const intervalInput = document.getElementById("intervalInput");
+  const tableBody = document.getElementById("resultTable");
+
+  let moveTimer = null;
+  let startTime = null;
+  let clickCount = 0;
+  let isPaused = false;
+
+  function randomPosition() {
+    const maxX = playArea.clientWidth - box.clientWidth;
+    const maxY = playArea.clientHeight - box.clientHeight;
+
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+
+    box.style.left = x + "px";
+    box.style.top = y + "px";
+  }
+
+  function startGame() {
+    if (moveTimer) return;
+
+    isPaused = false;
+    box.style.display = "block";
+    randomPosition();
+    startTime = Date.now();
+
+    const interval = Number(intervalInput.value) * 1000;
+
+    moveTimer = setInterval(() => {
+      randomPosition();
+      startTime = Date.now();
+    }, interval);
+  }
+
+  function pauseGame() {
+    if (!moveTimer) return;
+
+    clearInterval(moveTimer);
+    moveTimer = null;
+    startTime = null;
+    isPaused = false;
+  }
+
+  function resetGame() {
+    clearInterval(moveTimer);
+    moveTimer = null;
+    box.style.display = "none";
+    tableBody.innerHTML = "";
+    clickCount = 0;
+    startTime = null;
+    isPaused = null;
+  }
+
+  box.addEventListener("click", () => {
+    if (!startTime) return;
+
+    const reactionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    clickCount++;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${clickCount}</td>
+      <td>${reactionTime}</td>
+    `;
+    tableBody.appendChild(row);
+
+    randomPosition();
+    startTime = Date.now();
+  });
+
+  startBtn.addEventListener("click", startGame);
+  pauseBtn.addEventListener("click", pauseGame);
+  resetBtn.addEventListener("click", resetGame);
+</script>
+
+</body>
+</html>
